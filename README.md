@@ -42,6 +42,6 @@ I rarely compromise on ideas, but take shortcuts whenever necessary. Ideas are t
 
 Technology used in the whole process of prototyping:
 
-Hardware: Aduino Uno, 2x16 LCD Screen, LED lights, speakers, servos, jumper wires, potentiometer, modified ESP32, lightsensors, motion sensors, ultra sound sensor, Batteries, KY-022 sensor and an IR-remote.
-Software: Arduino IDE, VS Code, coded in C/C++.
+Hardware: Aduino Uno, 2x16 LCD Screen, LED lights, speakers, servos, jumper wires, potentiometer, modified ESP32, lightsensors, motion sensors, ultra sound sensor, Batteries, KY-022 sensor and an IR-remote, 3D-printer, 3D printing filament.
+Software: Arduino IDE, VS Code, coded in C/C++, Autodesk Fusion, Prusa Slicer.
 
