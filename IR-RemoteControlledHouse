@@ -99,7 +99,7 @@ void loop() {
               toggleLED(5);
               break;
             case 6:
-              Serial.println("Button 7 pressed");
+              Serial.println("Off button pressed");
               allLEDOff();
               break;
             default:
