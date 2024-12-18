@@ -1,0 +1,156 @@
+#include <LiquidCrystal.h>
+#include <IRremote.h>
+
+// Initialize the LCD (RS, E, D4, D5, D6, D7)
+LiquidCrystal lcd(8, 9, 10, 11, 12, 13);
+
+// Define LED pins and their names
+const int ledPins[] = {2, 3, 4, 5, 6, 7};
+const char* ledNames[] = {"Downstairs", "Upstairs", "Corridor", "Stairs", "Bathroom", "Bedroom"};
+
+// LED state tracking (ON/OFF)
+bool ledState[6] = {false, false, false, false, false, false};
+
+int IR_RECEIVE_PIN = A0; // Turn the variable "IrReceiverPin" to Pin A0
+
+// IR remote button codes
+const unsigned long buttonCodes[] = {
+  0xC, // Button 1 code
+  0x18, // Button 2 code
+  0x5E, // Button 3 code
+  0x8, // Button 4 code
+  0x1c, // Button 5 code
+  0x5A, // Button 6 code
+  0x45, // All Off Button
+};
+
+void setup()
+{
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  Serial.begin(9600);
+
+  //When the IR-remote library crashes we can see it from the shown text
+  Serial.println("Starting IR-receiver...");
+
+  IrReceiver.begin(IR_RECEIVE_PIN, ENABLE_LED_FEEDBACK);
+
+  Serial.println("IR-receiver started");
+
+    // Set up LCD
+  lcd.begin(16, 2);
+
+  Serial.println("LCD setup");
+
+  // Initialize LED pins as output
+  for (int i = 0; i < 6; i++) {
+    pinMode(ledPins[i], OUTPUT);
+    digitalWrite(ledPins[i], LOW); // Start with LEDs off
+  }
+
+  Serial.println("All LEDs off");
+
+  // Display welcome message
+  lcd.print("Welcome back!");
+  delay(2000);
+  lcd.clear();
+  lcd.print("Need some light?");
+}
+
+void loop() {
+  if (IrReceiver.decode()) {  // Grab an IR code
+    Serial.println(); // blank line between entries
+    Serial.println(); // 2 blank lines between entries
+    IrReceiver.printIRResultShort(&Serial);
+
+    if (IrReceiver.decodedIRData.flags & IRDATA_FLAGS_WAS_OVERFLOW) {
+          IrReceiver.resume();                            // Prepare for the next IR frame
+          return;
+      } else {
+        Serial.println();
+        IrReceiver.printIRSendUsage(&Serial);
+        Serial.println();
+        unsigned long receivedCode = IrReceiver.decodedIRData.command;
+        for (int i = 0; i < sizeof(buttonCodes) / sizeof(buttonCodes[0]); i++) {
+        if (receivedCode == buttonCodes[i]) {
+          switch (i) {
+            case 0:
+              Serial.println("Button 1 pressed");
+              toggleLED(0);
+              break;
+            case 1:
+              Serial.println("Button 2 pressed");
+              toggleLED(1);
+              break;
+            case 2:
+              Serial.println("Button 3 pressed");
+              toggleLED(2);
+              break;
+            case 3:
+              Serial.println("Button 4 pressed");
+              toggleLED(3);
+              break;
+            case 4:
+              Serial.println("Button 5 pressed");
+              toggleLED(4);
+              break;
+            case 5:
+              Serial.println("Button 6 pressed");
+              toggleLED(5);
+              break;
+            case 6:
+              Serial.println("Off button pressed");
+              allLEDOff();
+              break;
+            default:
+              Serial.println("Unknown button");
+              lcd.clear();
+              lcd.print(String(receivedCode, HEX));
+          }
+          break; // Exit the loop once a match is found
+        }
+      }
+      IrReceiver.resume();                            // Prepare for the next IR frame
+    }
+  }
+}
+
+// Function to toggle LEDs and update the LCD
+void toggleLED(int ledIndex) {
+  // Toggle LED state
+  ledState[ledIndex] = !ledState[ledIndex];
+  digitalWrite(ledPins[ledIndex], ledState[ledIndex] ? HIGH : LOW);
+
+  // Update LCD based on current states
+  updateLCD();
+}
+
+void allLEDOff() {
+  for (int i = 0; i < 7; i++) {
+    ledState[i] = false;
+    digitalWrite(ledPins[i], LOW);
+    updateLCD();
+  }
+}
+
+// Function to update the LCD display
+void updateLCD() {
+  lcd.clear();
+  bool anyLEDOn = false;
+
+  for (int i = 0; i < 7; i++) {
+    if (ledState[i]) {
+      // Display the first active LED name
+      lcd.setCursor(0, 0);
+      lcd.print("On: ");
+      lcd.print(ledNames[i]);
+      anyLEDOn = true;
+      break;
+    }
+  }
+
+  if (!anyLEDOn) {
+    // If no LEDs are on, display this message
+    lcd.print("Lights are off.");
+  }
+}
